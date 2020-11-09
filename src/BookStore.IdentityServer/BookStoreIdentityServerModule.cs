@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using BookStore.DbMigrationsForIdsDb.EntityFrameworkCore;
 using Localization.Resources.AbpUi;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -38,7 +39,7 @@ namespace BookStore
         typeof(AbpAccountWebIdentityServerModule),
         typeof(AbpAccountApplicationModule),
         typeof(AbpAspNetCoreMvcUiBasicThemeModule),
-        typeof(BookStoreEntityFrameworkCoreDbMigrationsModule),
+        typeof(BookStoreEntityFrameworkCoreIdsDbMigrationsModule),
         typeof(AbpAspNetCoreSerilogModule)
         )]
     public class BookStoreIdentityServerModule : AbpModule
@@ -102,7 +103,7 @@ namespace BookStore
 
             if (!hostingEnvironment.IsDevelopment())
             {
-                var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]);
+                var redis = ConnectionMultiplexer.Connect(configuration["Redis:Ids"]);
                 context.Services
                     .AddDataProtection()
                     .PersistKeysToStackExchangeRedis(redis, "BookStore-Protection-Keys");

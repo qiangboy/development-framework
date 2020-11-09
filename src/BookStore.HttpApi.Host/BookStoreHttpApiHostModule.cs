@@ -183,7 +183,7 @@ namespace BookStore
         {
             if (!hostingEnvironment.IsDevelopment())
             {
-                var redis = ConnectionMultiplexer.Connect(configuration["Redis:Configuration"]);
+                var redis = ConnectionMultiplexer.Connect(configuration["Redis:HttpApi"]);
                 context.Services
                     .AddDataProtection()
                     .PersistKeysToStackExchangeRedis(redis, "BookStore-Protection-Keys");

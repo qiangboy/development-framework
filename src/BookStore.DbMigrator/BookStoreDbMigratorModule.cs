@@ -1,4 +1,5 @@
-﻿using BookStore.EntityFrameworkCore;
+﻿using BookStore.DbMigrationsForIdsDb.EntityFrameworkCore;
+using BookStore.EntityFrameworkCore;
 using Volo.Abp.Autofac;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Modularity;
@@ -8,6 +9,7 @@ namespace BookStore.DbMigrator
     [DependsOn(
         typeof(AbpAutofacModule),
         typeof(BookStoreEntityFrameworkCoreDbMigrationsModule),
+        typeof(BookStoreEntityFrameworkCoreIdsDbMigrationsModule),
         typeof(BookStoreApplicationContractsModule)
         )]
     public class BookStoreDbMigratorModule : AbpModule
