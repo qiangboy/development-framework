@@ -10,7 +10,7 @@ using Volo.Abp.EntityFrameworkCore;
 
 namespace BookStore.DbMigrationsForIdsDb.Migrations
 {
-    [DbContext(typeof(BookStoreIdsMigrationsDbContext))]
+    [DbContext(typeof(BookStoreMigrationsIdsDbContext))]
     [Migration("20201109062837_Initial")]
     partial class Initial
     {

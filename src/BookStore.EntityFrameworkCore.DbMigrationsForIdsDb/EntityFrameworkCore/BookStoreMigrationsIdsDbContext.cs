@@ -9,11 +9,11 @@ using Volo.Abp.SettingManagement.EntityFrameworkCore;
 namespace BookStore.DbMigrationsForIdsDb.EntityFrameworkCore
 {
     [ConnectionStringName("AbpIdentityServer")]
-    public class BookStoreIdsMigrationsDbContext :
-        AbpDbContext<BookStoreIdsMigrationsDbContext>
+    public class BookStoreMigrationsIdsDbContext :
+        AbpDbContext<BookStoreMigrationsIdsDbContext>
     {
-        public BookStoreIdsMigrationsDbContext(
-            DbContextOptions<BookStoreIdsMigrationsDbContext> options)
+        public BookStoreMigrationsIdsDbContext(
+            DbContextOptions<BookStoreMigrationsIdsDbContext> options)
             : base(options)
         {
         }

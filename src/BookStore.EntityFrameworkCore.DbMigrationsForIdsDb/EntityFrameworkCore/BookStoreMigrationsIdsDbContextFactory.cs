@@ -7,17 +7,17 @@ namespace BookStore.DbMigrationsForIdsDb.EntityFrameworkCore
 {
     /* This class is needed for EF Core console commands
  * (like Add-Migration and Update-Database commands) */
-    public class BookStoreIdsMigrationsDbContextFactory
-        : IDesignTimeDbContextFactory<BookStoreIdsMigrationsDbContext>
+    public class BookStoreMigrationsIdsDbContextFactory
+        : IDesignTimeDbContextFactory<BookStoreMigrationsIdsDbContext>
     {
-        public BookStoreIdsMigrationsDbContext CreateDbContext(string[] args)
+        public BookStoreMigrationsIdsDbContext CreateDbContext(string[] args)
         {
             var configuration = BuildConfiguration();
 
-            var builder = new DbContextOptionsBuilder<BookStoreIdsMigrationsDbContext>()
+            var builder = new DbContextOptionsBuilder<BookStoreMigrationsIdsDbContext>()
                 .UseSqlServer(configuration.GetConnectionString("AbpIdentityServer"));
 
-            return new BookStoreIdsMigrationsDbContext(builder.Options);
+            return new BookStoreMigrationsIdsDbContext(builder.Options);
         }
 
         private static IConfigurationRoot BuildConfiguration()

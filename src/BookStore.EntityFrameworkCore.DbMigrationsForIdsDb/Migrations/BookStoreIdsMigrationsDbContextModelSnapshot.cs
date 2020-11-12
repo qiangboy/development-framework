@@ -9,7 +9,7 @@ using Volo.Abp.EntityFrameworkCore;
 
 namespace BookStore.DbMigrationsForIdsDb.Migrations
 {
-    [DbContext(typeof(BookStoreIdsMigrationsDbContext))]
+    [DbContext(typeof(BookStoreMigrationsIdsDbContext))]
     partial class BookStoreIdsMigrationsDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

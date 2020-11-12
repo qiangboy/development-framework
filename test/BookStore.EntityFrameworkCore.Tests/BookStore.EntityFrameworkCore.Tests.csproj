@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\BookStore.EntityFrameworkCore.DbMigrationsForIdsDb\BookStore.EntityFrameworkCore.DbMigrationsForIdsDb.csproj" />
     <ProjectReference Include="..\..\src\BookStore.EntityFrameworkCore.DbMigrations\BookStore.EntityFrameworkCore.DbMigrations.csproj" />
     <ProjectReference Include="..\BookStore.TestBase\BookStore.TestBase.csproj" />
     <PackageReference Include="Volo.Abp.EntityFrameworkCore.Sqlite" Version="3.3.0" />

@@ -1,4 +1,5 @@
-﻿using Volo.Abp.Account;
+﻿using BookStore.Application.EventBus;
+using Volo.Abp.Account;
 using Volo.Abp.AutoMapper;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
@@ -15,7 +16,8 @@ namespace BookStore
         typeof(AbpIdentityApplicationModule),
         typeof(AbpPermissionManagementApplicationModule),
         typeof(AbpTenantManagementApplicationModule),
-        typeof(AbpFeatureManagementApplicationModule)
+        typeof(AbpFeatureManagementApplicationModule),
+        typeof(BookStoreApplicationEventBusModule)
         )]
     public class BookStoreApplicationModule : AbpModule
     {

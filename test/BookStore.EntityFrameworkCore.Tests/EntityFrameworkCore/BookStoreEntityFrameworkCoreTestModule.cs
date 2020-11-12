@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using BookStore.DbMigrationsForIdsDb.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -12,6 +13,7 @@ namespace BookStore.EntityFrameworkCore
 {
     [DependsOn(
         typeof(BookStoreEntityFrameworkCoreDbMigrationsModule),
+        typeof(BookStoreEntityFrameworkCoreIdsDbMigrationsModule),
         typeof(BookStoreTestBaseModule),
         typeof(AbpEntityFrameworkCoreSqliteModule)
         )]
@@ -51,7 +53,16 @@ namespace BookStore.EntityFrameworkCore
                 .UseSqlite(connection)
                 .Options;
 
+            var optionsForIds = new DbContextOptionsBuilder<BookStoreMigrationsIdsDbContext>()
+                .UseSqlite(connection)
+                .Options;
+
             using (var context = new BookStoreMigrationsDbContext(options))
+            {
+                context.GetService<IRelationalDatabaseCreator>().CreateTables();
+            }
+
+            using (var context = new BookStoreMigrationsIdsDbContext(optionsForIds))
             {
                 context.GetService<IRelationalDatabaseCreator>().CreateTables();
             }
