@@ -1,1 +1,1 @@
-# My-Project
+# A useful development framework.
