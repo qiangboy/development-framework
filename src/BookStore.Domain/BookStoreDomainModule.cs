@@ -1,12 +1,15 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using BookStore.MultiTenancy;
+using MailKit.Security;
 using Volo.Abp.AuditLogging;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Emailing;
+using Volo.Abp.Emailing.Smtp;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
 using Volo.Abp.IdentityServer;
+using Volo.Abp.MailKit;
 using Volo.Abp.Modularity;
 using Volo.Abp.MultiTenancy;
 using Volo.Abp.PermissionManagement.Identity;
@@ -27,20 +30,28 @@ namespace BookStore
         typeof(AbpPermissionManagementDomainIdentityServerModule),
         typeof(AbpSettingManagementDomainModule),
         typeof(AbpTenantManagementDomainModule),
-        typeof(AbpEmailingModule)
+        typeof(AbpEmailingModule),
+        typeof(AbpMailKitModule)
     )]
     public class BookStoreDomainModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            
+            //Configure<AbpMailKitOptions>(options =>
+            //{
+            //    options.SecureSocketOption = SecureSocketOptions.SslOnConnect;
+            //});
+
             Configure<AbpMultiTenancyOptions>(options =>
             {
                 options.IsEnabled = MultiTenancyConsts.IsEnabled;
             });
 
-#if DEBUG
-            context.Services.Replace(ServiceDescriptor.Singleton<IEmailSender, NullEmailSender>());
-#endif
+            //context.Services.Replace(ServiceDescriptor.Singleton<IEmailSender, SmtpEmailSender>());
+            //#if DEBUG
+            //            context.Services.Replace(ServiceDescriptor.Singleton<IEmailSender, NullEmailSender>());
+            //#endif
         }
     }
 }

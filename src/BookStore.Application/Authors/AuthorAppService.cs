@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using BookStore.Application.EventBus.Books;
+using BookStore.Books;
 using BookStore.Permissions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Distributed;
+using Volo.Abp.MailKit;
 
 namespace BookStore.Authors
 {
@@ -18,18 +20,19 @@ namespace BookStore.Authors
         private readonly IAuthorRepository _authorRepository;
         private readonly AuthorManager _authorManager;
         private readonly IDistributedEventBus _distributedEventBus;
-        private readonly IDistributedCache _distributedCache;
+        private readonly IMailKitSmtpEmailSender _emailSender;
 
         public AuthorAppService(
             IAuthorRepository authorRepository,
             AuthorManager authorManager,
             IDistributedEventBus distributedEventBus,
-            IDistributedCache distributedCache)
+            IMailKitSmtpEmailSender emailSender,
+            IBookAppCacheService bookAppCacheService)
         {
             _authorRepository = authorRepository;
             _authorManager = authorManager;
             _distributedEventBus = distributedEventBus;
-            _distributedCache = distributedCache;
+            _emailSender = emailSender;
         }
 
         public async Task<AuthorDto> GetAsync(Guid id)
@@ -41,6 +44,7 @@ namespace BookStore.Authors
 
         public async Task<PagedResultDto<AuthorDto>> GetListAsync(GetAuthorListDto input)
         {
+
             if (input.Sorting.IsNullOrWhiteSpace())
             {
                 input.Sorting = nameof(Author.Name);
@@ -65,17 +69,11 @@ namespace BookStore.Authors
                 AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(3)
             };
 
-            await _distributedCache.SetStringAsync("count", totalCount.ToString(), options);
-
-            await _distributedEventBus.PublishAsync(new BookEventData
-            {
-                Key = totalCount.ToString()
-            });
-
             return new PagedResultDto<AuthorDto>(
                 totalCount,
                 ObjectMapper.Map<List<Author>, List<AuthorDto>>(authors)
             );
+
         }
 
         [Authorize(BookStorePermissions.Authors.Create)]
@@ -88,6 +86,18 @@ namespace BookStore.Authors
             );
 
             await _authorRepository.InsertAsync(author);
+
+            await _distributedEventBus.PublishAsync(new BookCachingRemoveEventData
+            {
+                Key = BookCacheConsts.CachePrefix.Book
+            });
+
+            await _emailSender.SendAsync(
+                "2314862535@qq.com",     // target email address
+                "Email subject",         // subject
+                "This is email body...",  // email body
+                false
+            );
 
             return ObjectMapper.Map<Author, AuthorDto>(author);
         }
@@ -106,12 +116,36 @@ namespace BookStore.Authors
             author.ShortBio = input.ShortBio;
 
             await _authorRepository.UpdateAsync(author);
+
+            await _distributedEventBus.PublishAsync(new BookCachingRemoveEventData
+            {
+                Key = BookCacheConsts.CachePrefix.Book
+            });
+
+            await _emailSender.SendAsync(
+                "2314862535@qq.com",     // target email address
+                "Email subject",         // subject
+                "This is email body...",  // email body
+                false
+            );
         }
 
         [Authorize(BookStorePermissions.Authors.Delete)]
         public async Task DeleteAsync(Guid id)
         {
             await _authorRepository.DeleteAsync(id);
+
+            await _distributedEventBus.PublishAsync(new BookCachingRemoveEventData
+            {
+                Key = BookCacheConsts.CachePrefix.Book
+            });
+
+            await _emailSender.SendAsync(
+                "2314862535@qq.com",     // target email address
+                "Email subject",         // subject
+                "This is email body...",  // email body
+                false
+            );
         }
     }
 }

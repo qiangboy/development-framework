@@ -2,27 +2,35 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BookStore.Application.EventBus.Books;
 using BookStore.Authors;
 using BookStore.Permissions;
-using Microsoft.AspNetCore.Authorization;
+using BookStore.ToolKits.Extensions;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Entities;
 using Volo.Abp.Domain.Repositories;
+using Volo.Abp.EventBus.Distributed;
 
 namespace BookStore.Books
 {
-    [Authorize(BookStorePermissions.Books.Default)]
+    //[Authorize(BookStorePermissions.Books.Default)]
     public class BookAppService : CrudAppService<Book,BookDto,Guid,PagedAndSortedResultRequestDto,CreateUpdateBookDto>, IBookAppService
     {
         private readonly IAuthorRepository _authorRepository;
+        private readonly IBookAppCacheService _bookAppCacheService;
+        private readonly IDistributedEventBus _distributedEventBus;
 
         public BookAppService(
             IRepository<Book, Guid> repository,
-            IAuthorRepository authorRepository) 
+            IAuthorRepository authorRepository,
+            IBookAppCacheService bookAppCacheService,
+            IDistributedEventBus distributedEventBus) 
             : base(repository)
         {
             _authorRepository = authorRepository;
+            _bookAppCacheService = bookAppCacheService;
+            _distributedEventBus = distributedEventBus;
             GetPolicyName = BookStorePermissions.Books.Default;
             GetListPolicyName = BookStorePermissions.Books.Default;
             CreatePolicyName = BookStorePermissions.Books.Create;
@@ -60,36 +68,39 @@ namespace BookStore.Books
         public override async Task<PagedResultDto<BookDto>>
             GetListAsync(PagedAndSortedResultRequestDto input)
         {
-            await CheckGetListPolicyAsync();
+            //await CheckGetListPolicyAsync(); // 检查查询该结果需要的策略
 
-            //Prepare a query to join books and authors
-            var query = from book in Repository
-                join author in _authorRepository on book.AuthorId equals author.Id
-                orderby input.Sorting
-                select new { book, author };
-
-            query = query
-                .Skip(input.SkipCount)
-                .Take(input.MaxResultCount);
-
-            //Execute the query and get a list
-            var queryResult = await AsyncExecuter.ToListAsync(query);
-
-            //Convert the query result to a list of BookDto objects
-            var bookDtos = queryResult.Select(x =>
+            return await _bookAppCacheService.GetListAsync(input, async () =>
             {
-                var bookDto = ObjectMapper.Map<Book, BookDto>(x.book);
-                bookDto.AuthorName = x.author.Name;
-                return bookDto;
-            }).ToList();
+                //Prepare a query to join books and authors
+                var query = from book in Repository
+                    join author in _authorRepository on book.AuthorId equals author.Id
+                    orderby input.Sorting
+                    select new { book, author };
 
-            //Get the total count with another query
-            var totalCount = await Repository.GetCountAsync();
+                query = query
+                    .Skip(input.SkipCount)
+                    .Take(input.MaxResultCount);
 
-            return new PagedResultDto<BookDto>(
-                totalCount,
-                bookDtos
-            );
+                //Execute the query and get a list
+                var queryResult = await AsyncExecuter.ToListAsync(query);
+
+                //Convert the query result to a list of BookDto objects
+                var bookDtos = queryResult.Select(x =>
+                {
+                    var bookDto = ObjectMapper.Map<Book, BookDto>(x.book);
+                    bookDto.AuthorName = x.author.Name;
+                    return bookDto;
+                }).ToList();
+
+                //Get the total count with another query
+                var totalCount = await Repository.GetCountAsync();
+
+                return new PagedResultDto<BookDto>(
+                    totalCount,
+                    bookDtos
+                );
+            });
         }
 
         public async Task<ListResultDto<AuthorLookupDto>> GetAuthorLookupAsync()
@@ -99,6 +110,14 @@ namespace BookStore.Books
             return new ListResultDto<AuthorLookupDto>(
                 ObjectMapper.Map<List<Author>, List<AuthorLookupDto>>(authors)
             );
+        }
+
+        public async Task TestRemoveCache(int a,int b)
+        {
+            await _distributedEventBus.PublishAsync(new BookCachingRemoveEventData
+            {
+                Key = BookCacheConsts.CacheKey.Key_GetList.FormatWith(0,10)
+            });
         }
     }
 }

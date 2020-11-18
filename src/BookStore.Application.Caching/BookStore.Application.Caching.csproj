@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BookStore.Application.Contracts\BookStore.Application.Contracts.csproj" />
+    <ProjectReference Include="..\BookStore.Application.EventBus\BookStore.Application.EventBus.csproj" />
+    <ProjectReference Include="..\BookStore.Domain.Shared\BookStore.Domain.Shared.csproj" />
+    <ProjectReference Include="..\BookStore.Domain\BookStore.Domain.csproj" />
+    <ProjectReference Include="..\BookStore.ToolKits\BookStore.ToolKits.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,6 @@
 ﻿namespace BookStore.Application.EventBus.Books
 {
-    public class BookEventData
+    public class BookCachingRemoveEventData
     {
         public string Key { get; set; }
     }
