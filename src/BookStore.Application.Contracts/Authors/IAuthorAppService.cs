@@ -11,6 +11,8 @@ namespace BookStore.Authors
 
         Task<PagedResultDto<AuthorDto>> GetListAsync(GetAuthorListDto input);
 
+        Task<PagedResultDto<AuthorDto>> GetDeletedListAsync();
+
         Task<AuthorDto> CreateAsync(CreateAuthorDto input);
 
         Task UpdateAsync(Guid id, UpdateAuthorDto input);

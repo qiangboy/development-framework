@@ -4,8 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using BookStore.Application.EventBus.Books;
 using BookStore.Authors;
+using BookStore.Caching;
 using BookStore.Permissions;
 using BookStore.ToolKits.Extensions;
+using BookStore.Volo.Abp.Emailing;
+using Microsoft.AspNetCore.Authorization;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
 using Volo.Abp.Domain.Entities;
@@ -14,23 +17,26 @@ using Volo.Abp.EventBus.Distributed;
 
 namespace BookStore.Books
 {
-    //[Authorize(BookStorePermissions.Books.Default)]
+    [Authorize(BookStorePermissions.Books.Default)]
     public class BookAppService : CrudAppService<Book,BookDto,Guid,PagedAndSortedResultRequestDto,CreateUpdateBookDto>, IBookAppService
     {
         private readonly IAuthorRepository _authorRepository;
-        private readonly IBookAppCacheService _bookAppCacheService;
         private readonly IDistributedEventBus _distributedEventBus;
+        private readonly EmailingTextTemplateService _emailingTextTemplateService;
+        private readonly ICacheService<BookDto> _cacheService;
 
         public BookAppService(
             IRepository<Book, Guid> repository,
             IAuthorRepository authorRepository,
-            IBookAppCacheService bookAppCacheService,
-            IDistributedEventBus distributedEventBus) 
+            IDistributedEventBus distributedEventBus,
+            EmailingTextTemplateService emailingTextTemplateService,
+            ICacheService<BookDto> cacheService) 
             : base(repository)
         {
             _authorRepository = authorRepository;
-            _bookAppCacheService = bookAppCacheService;
             _distributedEventBus = distributedEventBus;
+            _emailingTextTemplateService = emailingTextTemplateService;
+            _cacheService = cacheService;
             GetPolicyName = BookStorePermissions.Books.Default;
             GetListPolicyName = BookStorePermissions.Books.Default;
             CreatePolicyName = BookStorePermissions.Books.Create;
@@ -47,30 +53,33 @@ namespace BookStore.Books
         {
             await CheckGetPolicyAsync();
 
-            //Prepare a query to join books and authors
-            var query = from book in Repository
-                join author in _authorRepository on book.AuthorId equals author.Id
-                where book.Id == id
-                select new { book, author };
-
-            //Execute the query and get the book with author
-            var queryResult = await AsyncExecuter.FirstOrDefaultAsync(query);
-            if (queryResult == null)
+            return await _cacheService.GetAsync(BookCacheConsts.CacheKey.Key_Get.FormatWith(id), async () =>
             {
-                throw new EntityNotFoundException(typeof(Book), id);
-            }
+                //Prepare a query to join books and authors
+                var query = from book in Repository
+                    join author in _authorRepository on book.AuthorId equals author.Id
+                    where book.Id == id
+                    select new {book, author};
 
-            var bookDto = ObjectMapper.Map<Book, BookDto>(queryResult.book);
-            bookDto.AuthorName = queryResult.author.Name;
-            return bookDto;
+                //Execute the query and get the book with author
+                var queryResult = await AsyncExecuter.FirstOrDefaultAsync(query);
+                if (queryResult == null)
+                {
+                    throw new EntityNotFoundException(typeof(Book), id);
+                }
+
+                var bookDto = ObjectMapper.Map<Book, BookDto>(queryResult.book);
+                bookDto.AuthorName = queryResult.author.Name;
+                return bookDto;
+            });
         }
 
         public override async Task<PagedResultDto<BookDto>>
             GetListAsync(PagedAndSortedResultRequestDto input)
         {
-            //await CheckGetListPolicyAsync(); // 检查查询该结果需要的策略
+            await CheckGetListPolicyAsync(); // 检查查询该结果需要的策略
 
-            return await _bookAppCacheService.GetListAsync(input, async () =>
+            return await _cacheService.GetListAsync(BookCacheConsts.CacheKey.Key_GetList.FormatWith(input.SkipCount, input.MaxResultCount), async () =>
             {
                 //Prepare a query to join books and authors
                 var query = from book in Repository
@@ -105,19 +114,24 @@ namespace BookStore.Books
 
         public async Task<ListResultDto<AuthorLookupDto>> GetAuthorLookupAsync()
         {
-            var authors = await _authorRepository.GetListAsync();
+            return await _cacheService.GetAsync(BookCacheConsts.CacheKey.Key_AuthorLookup, async () =>
+            {
+                var authors = await _authorRepository.GetListAsync();
 
-            return new ListResultDto<AuthorLookupDto>(
-                ObjectMapper.Map<List<Author>, List<AuthorLookupDto>>(authors)
-            );
+                return new ListResultDto<AuthorLookupDto>(
+                    ObjectMapper.Map<List<Author>, List<AuthorLookupDto>>(authors)
+                );
+            });
         }
 
-        public async Task TestRemoveCache(int a,int b)
+        //[IgnoreAntiforgeryToken]
+        public async Task<string> TestRemoveCache()
         {
-            await _distributedEventBus.PublishAsync(new BookCachingRemoveEventData
+            await _distributedEventBus.PublishAsync(new BookEventData
             {
-                Key = BookCacheConsts.CacheKey.Key_GetList.FormatWith(0,10)
+                Key = ""
             });
+            return await _emailingTextTemplateService.RunAsync();
         }
     }
 }

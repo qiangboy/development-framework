@@ -43,9 +43,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStore.EntityFrameworkCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStore.Application.EventBus", "src\BookStore.Application.EventBus\BookStore.Application.EventBus.csproj", "{4416BCA2-36B7-42A5-8CE5-6886F5999CDD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.ToolKits", "src\BookStore.ToolKits\BookStore.ToolKits.csproj", "{BE8110AA-F9D0-4906-8ECB-2B83295B505E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStore.ToolKits", "src\BookStore.ToolKits\BookStore.ToolKits.csproj", "{BE8110AA-F9D0-4906-8ECB-2B83295B505E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BookStore.Application.Caching", "src\BookStore.Application.Caching\BookStore.Application.Caching.csproj", "{3A155F94-8E63-44DE-801F-6986B9A0922B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BookStore.Application.Caching", "src\BookStore.Application.Caching\BookStore.Application.Caching.csproj", "{3A155F94-8E63-44DE-801F-6986B9A0922B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

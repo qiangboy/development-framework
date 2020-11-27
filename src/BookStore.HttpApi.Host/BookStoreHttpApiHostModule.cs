@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -16,6 +15,7 @@ using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.AspNetCore.Mvc.AntiForgery;
 using Volo.Abp.AspNetCore.Mvc.UI.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc.UI.Theme.Shared;
 using Volo.Abp.AspNetCore.Serilog;
@@ -54,6 +54,7 @@ namespace BookStore
             ConfigureRedis(context, configuration, hostingEnvironment);
             ConfigureCors(context, configuration);
             ConfigureSwaggerServices(context);
+            ConfigureAntiForgery(hostingEnvironment);
         }
 
         private void ConfigureCache(IConfiguration configuration)
@@ -104,6 +105,20 @@ namespace BookStore
                 });
         }
 
+        private void ConfigureAntiForgery(IWebHostEnvironment hostingEnvironment)
+        {
+            if (hostingEnvironment.IsDevelopment())
+            {
+                Configure<AbpAntiForgeryOptions>(options =>
+                {
+                    options.TokenCookie.Expiration = TimeSpan.FromDays(365); 
+                    options.AutoValidateIgnoredHttpMethods.Add("POST");
+                    options.AutoValidateIgnoredHttpMethods.Add("DELETE");
+                    options.AutoValidateIgnoredHttpMethods.Add("PUT");
+                });
+            }
+        }
+
         private static void ConfigureSwaggerServices(ServiceConfigurationContext context)
         {
             context.Services.AddSwaggerGen(
@@ -112,50 +127,25 @@ namespace BookStore
                     options.SwaggerDoc("v1", new OpenApiInfo {Title = "BookStore API", Version = "v1"});
                     options.DocInclusionPredicate((docName, description) => true);
 
-                    //添加Authorization
-                    //options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                    //{
-                    //    Description = "JWT Authorization header using the Bearer scheme.",
-                    //    Name = "Authorization",
-                    //    In = ParameterLocation.Header,
-                    //    Scheme = "bearer",
-                    //    Type = SecuritySchemeType.Http,
-                    //    BearerFormat = "JWT"
-                    //});
-
-                    //Bearer 的scheme定义
-                    var securityScheme = new OpenApiSecurityScheme()
+                    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
                     {
-                        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
                         Name = "Authorization",
-                        //参数添加在头部
-                        In = ParameterLocation.Header,
-                        //使用Authorize头部
-                        Type = SecuritySchemeType.Http,
-                        //内容为以 bearer开头
                         Scheme = "bearer",
-                        BearerFormat = "JWT"
-                    };
+                        Description = "Specify the authorization token.",
+                        In = ParameterLocation.Header,
+                        Type = SecuritySchemeType.Http,
+                    });
 
-                    //把所有方法配置为增加bearer头部信息
-                    var securityRequirement = new OpenApiSecurityRequirement
+                    options.AddSecurityRequirement(new OpenApiSecurityRequirement()
                     {
                         {
                             new OpenApiSecurityScheme
                             {
-                                Reference = new OpenApiReference
-                                {
-                                    Type = ReferenceType.SecurityScheme,
-                                    Id = "bearerAuth"
-                                }
+                                Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id = "Bearer"}
                             },
-                            new string[] {}
-                        }
-                    };
-
-                    //注册到swagger中
-                    options.AddSecurityDefinition("bearerAuth", securityScheme);
-                    options.AddSecurityRequirement(securityRequirement);
+                            new string[] { }
+                        },
+                    });
                 });
         }
 
@@ -163,16 +153,8 @@ namespace BookStore
         {
             Configure<AbpLocalizationOptions>(options =>
             {
-                //options.Languages.Add(new LanguageInfo("ar", "ar", "العربية"));
-                //options.Languages.Add(new LanguageInfo("cs", "cs", "Čeština"));
                 options.Languages.Add(new LanguageInfo("en", "en", "English"));
-                //options.Languages.Add(new LanguageInfo("fr", "fr", "Français"));
-                //options.Languages.Add(new LanguageInfo("hu", "hu", "Magyar"));
-                //options.Languages.Add(new LanguageInfo("pt-BR", "pt-BR", "Português"));
-                //options.Languages.Add(new LanguageInfo("ru", "ru", "Русский"));
-                //options.Languages.Add(new LanguageInfo("tr", "tr", "Türkçe"));
                 options.Languages.Add(new LanguageInfo("zh-Hans", "zh-Hans", "简体中文"));
-                //options.Languages.Add(new LanguageInfo("zh-Hant", "zh-Hant", "繁體中文"));
             });
         }
 
@@ -188,6 +170,8 @@ namespace BookStore
                     .AddDataProtection()
                     .PersistKeysToStackExchangeRedis(redis, "BookStore-Protection-Keys");
             }
+
+            
         }
 
         private void ConfigureCors(ServiceConfigurationContext context, IConfiguration configuration)

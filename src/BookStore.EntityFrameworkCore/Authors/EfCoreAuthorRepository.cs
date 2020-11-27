@@ -29,7 +29,7 @@ namespace BookStore.Authors
                     author => author.Name.Contains(filter)
                 )
                 .OrderBy(sorting)
-                .Skip(skipCount)
+                .Skip((skipCount - 1) * maxResultCount)
                 .Take(maxResultCount)
                 .ToListAsync();
         }

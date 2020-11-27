@@ -1,11 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using BookStore.MultiTenancy;
-using MailKit.Security;
+﻿using BookStore.MultiTenancy;
 using Volo.Abp.AuditLogging;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Emailing;
-using Volo.Abp.Emailing.Smtp;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
 using Volo.Abp.IdentityServer;
@@ -16,6 +12,7 @@ using Volo.Abp.PermissionManagement.Identity;
 using Volo.Abp.PermissionManagement.IdentityServer;
 using Volo.Abp.SettingManagement;
 using Volo.Abp.TenantManagement;
+using Volo.Abp.VirtualFileSystem;
 
 namespace BookStore
 {
@@ -37,11 +34,16 @@ namespace BookStore
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
+
             //Configure<AbpMailKitOptions>(options =>
             //{
             //    options.SecureSocketOption = SecureSocketOptions.SslOnConnect;
             //});
+
+            Configure<AbpVirtualFileSystemOptions>(options =>
+            {
+                options.FileSets.AddEmbedded<BookStoreDomainModule>();
+            });
 
             Configure<AbpMultiTenancyOptions>(options =>
             {

@@ -10,6 +10,6 @@ namespace BookStore.Books
         // ADD the NEW METHOD
         Task<ListResultDto<AuthorLookupDto>> GetAuthorLookupAsync();
 
-        Task TestRemoveCache(int a,int b);
+        Task<string> TestRemoveCache();
     }
 }

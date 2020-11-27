@@ -20,7 +20,7 @@ namespace BookStore
         typeof(AbpFeatureManagementApplicationModule),
         typeof(BookStoreApplicationEventBusModule),
         typeof(BookStoreApplicationCachingModule)
-        )]
+    )]
     public class BookStoreApplicationModule : AbpModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

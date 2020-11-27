@@ -1,8 +1,9 @@
 ﻿using System;
+using Volo.Abp.Application.Dtos;
 
 namespace BookStore.Authors
 {
-    public class AuthorDto
+    public class AuthorDto : EntityDto<Guid>
     {
         public string Name { get; set; }
 
